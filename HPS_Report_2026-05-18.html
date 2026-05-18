@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HPS Production Support Report — 2026-05-18</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --ink:#0f0e13; --paper:#f5f3ef; --cream:#ede9e1;
+  --accent:#c8410a; --accent2:#2563a8; --accent3:#16a34a;
+  --warn:#ca8a04; --muted:#8b8680; --border:#d5d0c8; --card:#ffffff;
+  --soft-red:#f7dfd5; --soft-amber:#f6ecd0; --soft-blue:#dbe9f8;
+  --soft-green:#dff3e6; --soft-gray:#ece8e1;
+  --radius:8px; --shadow:0 1px 4px rgba(0,0,0,.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.6}
+h1,h2,h3,h4{font-family:'DM Serif Display',serif}
+code,.mono{font-family:'DM Mono',monospace;font-size:12px}
+a{color:var(--accent2);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#0f0e13 0%,#1a1828 40%,#0d1f3c 100%);color:#fff;padding:48px 32px 36px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,rgba(37,99,168,.3),transparent 60%);pointer-events:none}
+.hero-inner{max-width:1200px;margin:0 auto;position:relative}
+.hero h1{font-size:clamp(28px,4vw,48px);font-weight:400;letter-spacing:-.02em;line-height:1.15}
+.hero-sub{color:rgba(255,255,255,.65);margin-top:8px;font-size:15px}
+.hero-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:4px 14px;font-size:13px;margin-top:16px}
+.hero-pill strong{color:#fff}
+
+/* FILTER BAR */
+.filter-bar{position:sticky;top:0;z-index:100;background:var(--card);border-bottom:1px solid var(--border);padding:10px 20px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.filter-inner{max-width:1200px;margin:0 auto}
+.preset-row{display:flex;gap:6px;flex-wrap:nowrap;margin-bottom:8px;overflow-x:auto;padding-bottom:2px}
+.preset-pill{cursor:pointer;padding:4px 14px;border-radius:999px;border:1px solid var(--border);font-size:12px;font-weight:500;background:var(--paper);color:var(--muted);transition:.15s;white-space:nowrap;user-select:none}
+.preset-pill.active,.preset-pill:hover{background:var(--soft-blue);color:var(--accent2);border-color:var(--accent2)}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filter-row select,.filter-row input[type=date]{padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif}
+.btn-reset{padding:5px 14px;background:var(--soft-red);color:var(--accent);border:1px solid #e8c5b8;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.filter-summary{font-size:12px;color:var(--muted);font-style:italic;margin-top:6px}
+
+/* LAYOUT */
+.content{max-width:1200px;margin:0 auto;padding:24px 20px}
+.section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:24px;overflow:hidden}
+.section-header{padding:16px 20px 12px;border-bottom:1px solid var(--border)}
+.section-header h2{font-size:20px;font-weight:400}
+.section-body{padding:20px}
+
+/* TABS */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 20px}
+.tab-btn{padding:10px 18px;border:none;background:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted);border-bottom:2.5px solid transparent;margin-bottom:-1px;transition:.15s}
+.tab-btn.active{color:var(--accent2);border-bottom-color:var(--accent2)}
+.tab-panel{display:none;padding:20px}
+.tab-panel.active{display:block}
+
+/* STAT CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.card.blue::before{background:var(--accent2)}
+.card.green::before{background:var(--accent3)}
+.card.red::before{background:var(--accent)}
+.card.amber::before{background:var(--warn)}
+.card.gray::before{background:var(--muted)}
+.card-val{font-family:'DM Mono',monospace;font-size:28px;font-weight:500;line-height:1}
+.card-label{font-size:12px;color:var(--muted);margin-top:4px;font-weight:500}
+
+/* TABLES */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{background:var(--cream);color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;cursor:pointer;user-select:none;white-space:nowrap}
+.tbl th:hover{color:var(--ink)}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(37,99,168,.03)}
+.tbl .subtotal td{background:var(--soft-gray);font-weight:600}
+.tbl .unassigned td{background:rgba(200,65,10,.05)}
+.tbl .red-border td:first-child{border-left:3px solid var(--accent)}
+.tbl td.number{font-family:'DM Mono',monospace;font-size:12px}
+.sort-arrow{font-size:10px;margin-left:4px;opacity:.4}
+.tbl th.sorted .sort-arrow{opacity:1;color:var(--accent2)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-red{background:var(--soft-red);color:var(--accent)}
+.badge-green{background:var(--soft-green);color:var(--accent3)}
+.badge-amber{background:var(--soft-amber);color:var(--warn)}
+.badge-blue{background:var(--soft-blue);color:var(--accent2)}
+.badge-gray{background:var(--soft-gray);color:var(--muted)}
+
+/* CHIPS */
+.chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;background:var(--soft-blue);color:var(--accent2);font-family:'DM Mono',monospace;font-size:11px;font-weight:500;white-space:nowrap;margin:2px}
+.chip:hover{background:#c5d8f0}
+
+/* CHIPS WRAP */
+.chips-wrap{display:flex;flex-wrap:wrap;gap:2px;line-height:2}
+
+/* BARS */
+.bar-chart{display:flex;flex-direction:column;gap:8px}
+.bar-row{display:flex;align-items:center;gap:10px;font-size:12px}
+.bar-label{min-width:140px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right;color:var(--ink)}
+.bar-track{flex:1;background:var(--cream);border-radius:4px;height:18px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s ease;background:linear-gradient(90deg,var(--accent2),#4a90d9)}
+.bar-fill.green{background:linear-gradient(90deg,var(--accent3),#34d399)}
+.bar-fill.red{background:linear-gradient(90deg,var(--accent),#f87171)}
+.bar-fill.amber{background:linear-gradient(90deg,var(--warn),#fbbf24)}
+.bar-fill.gray{background:linear-gradient(90deg,var(--muted),#a8a29e)}
+.bar-count{min-width:32px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}
+
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:768px){.two-col{grid-template-columns:1fr}}
+
+/* ACCORDION */
+.accordion{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:10px}
+.accordion-header{padding:12px 16px;background:var(--cream);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:600;font-size:14px}
+.accordion-header:hover{background:var(--soft-gray)}
+.accordion-header.highlight{background:linear-gradient(90deg,#fde8e8,#fdf0e8);color:var(--accent)}
+.accordion-body{display:none;padding:14px 16px;border-top:1px solid var(--border);background:#fff}
+.accordion-body.open{display:block}
+.accordion-toggle{font-size:16px;transition:.2s}
+.accordion.open .accordion-toggle{transform:rotate(180deg)}
+
+/* CLIENT GROUP */
+.client-group{border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
+.client-group-header{padding:10px 14px;background:var(--cream);font-weight:600;font-size:13px;cursor:pointer;display:flex;justify-content:space-between}
+.client-group-body{display:none;padding:10px 14px}
+.client-group.open .client-group-body{display:block}
+.insurer-row{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.insurer-row:last-child{border-bottom:none}
+.insurer-name{min-width:120px;color:var(--muted);font-weight:500}
+.insurer-chips{flex:1}
+.insurer-toggle{cursor:pointer;font-size:11px;color:var(--accent2);border:1px solid var(--accent2);border-radius:4px;padding:1px 6px;margin-right:6px;background:var(--soft-blue)}
+
+/* CALLOUT */
+.callout{border-radius:var(--radius);padding:12px 16px;font-size:13px;margin:12px 0}
+.callout-blue{background:var(--soft-blue);border-left:3px solid var(--accent2)}
+.callout-green{background:var(--soft-green);border-left:3px solid var(--accent3)}
+.callout-amber{background:var(--soft-amber);border-left:3px solid var(--warn)}
+.callout-red{background:var(--soft-red);border-left:3px solid var(--accent)}
+
+/* RES % COLORS */
+.pct-green{color:var(--accent3);font-weight:700}
+.pct-red{color:var(--accent);font-weight:700}
+
+/* PRINT */
+@media print{
+  .filter-bar{display:none}
+  .section{break-inside:avoid;page-break-after:auto}
+  .bar-fill{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .hero{padding:28px 16px}
+  .content{padding:14px 12px}
+  .section{overflow-x:auto}
+  .tbl{font-size:12px}
+}
+
+/* SECTION LABELS */
+.section-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:2px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px;letter-spacing:.1em">HEPH PRODUCTION SUPPORT</div>
+    <h1>HPS Incident Report</h1>
+    <div class="hero-sub">Reporting Period: 27 Apr 2026 – 15 May 2026 &nbsp;·&nbsp; Generated: 2026-05-18</div>
+    <div class="hero-pill">
+      <span>📋</span>
+      <strong id="hero-count">100</strong>
+      <span style="opacity:.7">tickets analysed</span>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <div class="preset-row">
+      <span class="preset-pill active" onclick="applyPreset(this,'all')">All</span>
+      <span class="preset-pill" onclick="applyPreset(this,'today')">Today</span>
+      <span class="preset-pill" onclick="applyPreset(this,'yesterday')">Yesterday</span>
+      <span class="preset-pill" onclick="applyPreset(this,'week')">This Week</span>
+      <span class="preset-pill" onclick="applyPreset(this,'month')">This Month</span>
+      <span class="preset-pill" onclick="applyPreset(this,'lastmonth')">Last Month</span>
+    </div>
+    <div class="filter-row">
+      <select id="f-client" onchange="onClientChange();renderAll()">
+        <option value="">All Clients</option>
+      </select>
+      <select id="f-insurer" onchange="renderAll()">
+        <option value="">All Insurers</option>
+      </select>
+      <label style="font-size:12px;color:var(--muted)">From</label>
+      <input type="date" id="f-from" oninput="clearPreset();renderAll()"/>
+      <label style="font-size:12px;color:var(--muted)">To</label>
+      <input type="date" id="f-to" oninput="clearPreset();renderAll()"/>
+      <button class="btn-reset" onclick="resetFilters()">Reset Filters</button>
+    </div>
+    <div class="filter-summary" id="filter-summary">Showing 100 tickets</div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- SECTION 00 EXECUTIVE SUMMARY -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">00</div>
+    <h2>Executive Summary</h2>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab(this,'tab-exec-overall')">Overall</button>
+    <button class="tab-btn" onclick="switchTab(this,'tab-exec-client')">Client-wise</button>
+  </div>
+  <div class="tab-panel active" id="tab-exec-overall">
+    <div class="cards" id="exec-cards"></div>
+    <div id="exec-callout"></div>
+  </div>
+  <div class="tab-panel" id="tab-exec-client">
+    <div id="exec-client-table"></div>
+  </div>
+</div>
+
+<!-- SECTION 01 DISTRIBUTION -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">01</div>
+    <h2>Client &amp; Insurer-wise Distribution</h2>
+  </div>
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab(this,'tab-dist-chart')">Distribution</button>
+    <button class="tab-btn" onclick="switchTab(this,'tab-dist-summary')">Client Summary</button>
+  </div>
+  <div class="tab-panel active" id="tab-dist-chart">
+    <div class="two-col">
+      <div id="dist-bar"></div>
+      <div id="dist-groups"></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="tab-dist-summary">
+    <div id="dist-summary-table"></div>
+  </div>
+</div>
+
+<!-- SECTION 02 CATEGORY ANALYSIS -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">02</div>
+    <h2>Issue Category Analysis</h2>
+  </div>
+  <div class="section-body" id="cat-table"></div>
+</div>
+
+<!-- SECTION 03 TICKET STATUS -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">03</div>
+    <h2>Current Ticket Status</h2>
+  </div>
+  <div class="section-body">
+    <div class="two-col">
+      <div id="status-bar"></div>
+      <div id="status-open-table"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 04 RCA ANALYSIS -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">04</div>
+    <h2>RCA Analysis</h2>
+  </div>
+  <div class="section-body" id="rca-panels"></div>
+</div>
+
+<!-- SECTION 05 PERMANENT FIX -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">05</div>
+    <h2>Permanent Fix Status</h2>
+  </div>
+  <div class="section-body">
+    <div class="cards" id="perm-cards"></div>
+    <div id="perm-table"></div>
+  </div>
+</div>
+
+<!-- SECTION 06 ASSIGNEE WORKLOAD -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">06</div>
+    <h2>Assignee Workload</h2>
+  </div>
+  <div class="section-body">
+    <div id="assignee-bar" style="margin-bottom:16px"></div>
+    <div id="assignee-table"></div>
+    <div id="assignee-callout"></div>
+  </div>
+</div>
+
+<!-- SECTION 07 HOURS LOGGED -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">07</div>
+    <h2>Hours Logged</h2>
+  </div>
+  <div class="section-body" id="hours-body"></div>
+</div>
+
+<!-- SECTION 08 TAXONOMY -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">08</div>
+    <h2>Category &amp; Sub-Category Taxonomy</h2>
+  </div>
+  <div class="section-body" id="taxonomy-body"></div>
+</div>
+
+<!-- SECTION 09 ERROR OWNERSHIP -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">09</div>
+    <h2>Error Ownership</h2>
+  </div>
+  <div class="section-body">
+    <div class="two-col">
+      <div id="ownership-bar"></div>
+      <div id="ownership-table"></div>
+    </div>
+    <div class="callout callout-green" style="margin-top:16px">
+      💡 <strong>Recommendation:</strong> Set up a dedicated Insurer SLA Escalation Register to track response times and resolution commitments for all Insurer-side tickets.
+    </div>
+  </div>
+</div>
+
+<!-- APPENDIX -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">A</div>
+    <h2>Appendix — Full Ticket Log</h2>
+  </div>
+  <div class="section-body">
+    <div id="appendix-count" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
+    <div style="overflow-x:auto">
+      <table class="tbl" id="appendix-tbl">
+        <thead>
+          <tr>
+            <th onclick="sortAppendix('key')">Key <span class="sort-arrow">↕</span></th>
+            <th onclick="sortAppendix('client')">Client <span class="sort-arrow">↕</span></th>
+            <th onclick="sortAppendix('insurer')">Insurer <span class="sort-arrow">↕</span></th>
+            <th onclick="sortAppendix('summary')">Summary <span class="sort-arrow">↕</span></th>
+            <th onclick="sortAppendix('assignee')">Assignee <span class="sort-arrow">↕</span></th>
+            <th onclick="sortAppendix('created')">Created <span class="sort-arrow">↕</span></th>
+            <th onclick="sortAppendix('status')">Status <span class="sort-arrow">↕</span></th>
+            <th onclick="sortAppendix('category')">Category <span class="sort-arrow">↕</span></th>
+            <th onclick="sortAppendix('sub_category')">Sub-Category <span class="sort-arrow">↕</span></th>
+            <th onclick="sortAppendix('permanent_fix')">Perm Fix <span class="sort-arrow">↕</span></th>
+            <th onclick="sortAppendix('error_owner')">Owner <span class="sort-arrow">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="appendix-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+const TICKETS = [{"key": "HPS-259", "summary": "[MMFSL] KYC Not working upload doc", "status": "Review", "assignee": "Keshav sharma", "created": "2026-05-15", "timespent": 5400, "client": "MMFSL", "insurer": "Not Specified", "issue": "Upload document failing while doing kyc", "rca": "Upload document call is failing, getting 403 forbidden for posbffapi.mahindrafinance.com /api/v2/upload-documents, issue raised to mahindra.", "resolved": "No", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Login / Auth Issue", "sub_category": "OTP / Session Issue", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-258", "summary": "[CSC] If we try to cancel any case, the case is not getting cancelled. Even in ITMS, the cancellation is not working. Kindly check and resolve the issue.", "status": "Backlog", "assignee": "Unassigned", "created": "2026-05-15", "timespent": 0, "client": "CSC", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Policy Document Issue", "sub_category": "ITMS Sync Failure", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-257", "summary": "[CSC] CHOLA - 4W - The vehicle fuel type is Petrol, but in the premium break-up, why is the CNG kit value appearing?", "status": "Backlog", "assignee": "Unassigned", "created": "2026-05-15", "timespent": 0, "client": "CSC", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Addon Not Visible", "sub_category": "Add-on Flag Misconfigured", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-256", "summary": "[CSC] Chola <> GCV not in dropdow", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-15", "timespent": 1200, "client": "CSC", "insurer": "Chola", "issue": "GCV not in dropdown", "rca": "Aleady there", "resolved": "N/A", "permanent_fix_raw": "n/a", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-255", "summary": "[CSC] Pincode error", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-15", "timespent": 2400, "client": "CSC", "insurer": "Shriram", "issue": "Proposal Error", "rca": "Cities master data wrong mapped", "resolved": "Yes", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "Wrong MMV Mapped", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-254", "summary": "[CSC] OTP not going ", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-15", "timespent": 600, "client": "CSC", "insurer": "Chola", "issue": "OTP not going", "rca": "Proactive Balance finished", "resolved": "Yes", "permanent_fix_raw": "N/A", "permanent_fix": "Fixed for All", "category": "Login / Auth Issue", "sub_category": "OTP / Session Issue", "error_owner": "Our System", "rca_group": "Application Logic / Code Bug"}, {"key": "HPS-253", "summary": "[CSC] TATA <> PCV - payment done, policy not received ", "status": "Review", "assignee": "heet.rathod", "created": "2026-05-15", "timespent": 1800, "client": "CSC", "insurer": "TATA AIG", "issue": "Policy doc not downloading", "rca": "Insurer api failing", "resolved": "Not yet", "permanent_fix_raw": "n/a", "permanent_fix": "Fixed for All", "category": "Policy Document Issue", "sub_category": "Insurer API Down", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-252", "summary": "[CSC] Shriram - Please check why the quotes are not coming from the other insurers except Tata.", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-15", "timespent": 840, "client": "CSC", "insurer": "Not Specified", "issue": "Only tata quotes coming", "rca": "all other insurer’s api was giving error", "resolved": "N/a", "permanent_fix_raw": "N/A For Chola: Make / Model is is Declined From United: No reposne has been received From HDFC: Please enter valid Agent code. From Shriram WebAggr-4 Declined Vehicle", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-251", "summary": "[CSC] TATA <> PCV - payment done, policy not received ", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-15", "timespent": 6300, "client": "CSC", "insurer": "TATA AIG", "issue": "policy doc not downloading", "rca": "Bug in code", "resolved": "Yes", "permanent_fix_raw": "done", "permanent_fix": "Fixed for All", "category": "Policy Document Issue", "sub_category": "Document Not Available", "error_owner": "Our System", "rca_group": "Application Logic / Code Bug"}, {"key": "HPS-250", "summary": "[RMIB] Universal quote not visible ", "status": "Backlog", "assignee": "Unassigned", "created": "2026-05-15", "timespent": 0, "client": "RMIB", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Addon Not Visible", "sub_category": "Add-on Flag Misconfigured", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-249", "summary": "[RMIB] Shriram - 4W payment done, policy not received", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-15", "timespent": 10800, "client": "RMIB", "insurer": "Shriram", "issue": "Policy doc not downloading", "rca": "In this case, the user likely completed the payment successfully, but closed the tab immediately afterward. As a result, the payment callback was never received. Since the callback is responsible for updating the payment status, the policy document was not downloaded.", "resolved": "Yes", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Policy Document Issue", "sub_category": "Document Not Available", "error_owner": "Our System", "rca_group": "Application Logic / Code Bug"}, {"key": "HPS-248", "summary": "[MMFSL] Chola 4W Policy not downloading", "status": "Review", "assignee": "heet.rathod", "created": "2026-05-15", "timespent": 3000, "client": "MMFSL", "insurer": "Chola", "issue": "User not able to download the policy doc.", "rca": "We’re getting cloudflare blocking from mahindra for document service domain, raised the mail for the same to Lahul. Mail subject: Domain blocked on cloudflare.", "resolved": "Currently i provided the policy doc to mudabbir but permanent resolution still pending on mahindra.", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Policy Document Issue", "sub_category": "Insurer API Down", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-247", "summary": "[CSC] Chola <> GCv - Road Side Assistance addons not showing", "status": "Review", "assignee": "heet.rathod", "created": "2026-05-14", "timespent": 0, "client": "CSC", "insurer": "Not Specified", "issue": "RSA Addon not coming", "rca": "Not implemented", "resolved": "No", "permanent_fix_raw": "No @heet.rathod Kindly confirm if we provide RSA Addon in chola GCV", "permanent_fix": "Not Fixed", "category": "Addon Not Visible", "sub_category": "Add-on Flag Misconfigured", "error_owner": "Our System", "rca_group": "Application Logic / Code Bug"}, {"key": "HPS-246", "summary": "[CSC] Chola <> 4W - MMV MAPPING", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-14", "timespent": 2220, "client": "CSC", "insurer": "TATA AIG", "issue": "Quotes not Coming", "rca": "New vehicle, so insurer doc was also not present and mapping was also not there", "resolved": "Yes", "permanent_fix_raw": "done", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Insurer", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-245", "summary": "[CSC] TATA <> 4w - RTO  mapping", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-14", "timespent": 360, "client": "CSC", "insurer": "TATA AIG", "issue": "Quotes not Coming", "rca": "New vehicle, so insurer doc was also not present and mapping was also not there", "resolved": "Yes", "permanent_fix_raw": "done", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Insurer", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-244", "summary": "[CSC] Choa <> GCV - Body IDV Issue please check", "status": "Backlog", "assignee": "Unassigned", "created": "2026-05-14", "timespent": 0, "client": "CSC", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-243", "summary": "[CSC] Chola <> GCV - mapping ", "status": "Backlog", "assignee": "Unassigned", "created": "2026-05-14", "timespent": 0, "client": "CSC", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-242", "summary": "[CSC] Chola <> GCV - paymnet done policy not reicved ", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-13", "timespent": 300, "client": "CSC", "insurer": "Chola", "issue": "PDPNR", "rca": "Policy doc takes some time, when i opending it was working", "resolved": "N/A Permnent Fix: n/a", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Policy Document Issue", "sub_category": "Document Not Available", "error_owner": "Our System", "rca_group": "No RCA Documented"}, {"key": "HPS-241", "summary": "[CSC] Chola <> 4W - MMV MAPPING", "status": "Review", "assignee": "heet.rathod", "created": "2026-05-13", "timespent": 900, "client": "CSC", "insurer": "Chola", "issue": "Quotes not coming", "rca": "not mapped", "resolved": "Yes", "permanent_fix_raw": "done Remark: Added and mapped, but", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Insurer", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-240", "summary": "[RMIB] ICICI - 2w payment done, policy not reiceved ", "status": "Backlog", "assignee": "Unassigned", "created": "2026-05-13", "timespent": 0, "client": "RMIB", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Other", "sub_category": "Miscellaneous", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-239", "summary": "[CSC] Chola <> 4W - MMV MAPPING", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-13", "timespent": 420, "client": "CSC", "insurer": "Chola", "issue": "Not Mapped", "rca": "Not mapped", "resolved": "yes", "permanent_fix_raw": "Done", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-238", "summary": "[MMFSL] Dealer City & Code Not showing for User", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-12", "timespent": 2400, "client": "MMFSL", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Other", "sub_category": "Miscellaneous", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-237", "summary": "[CSC] TATA <> 4w - MMV mapping", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-12", "timespent": 360, "client": "CSC", "insurer": "TATA AIG", "issue": "MMV not mapped", "rca": "MMV not mapped", "resolved": "Yes", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-236", "summary": "[RMIB] 2023 reg date - 4W - Univercel - driver cover showing crocess  ", "status": "Done", "assignee": "Aryan Duhan", "created": "2026-05-12", "timespent": 1200, "client": "RMIB", "insurer": "Not Specified", "issue": "driver cover add-on not available for usompo", "rca": "we are sending isapplicable as true for the cover but not getting the prem in response.", "resolved": "No (pending on insurer)", "permanent_fix_raw": "No", "permanent_fix": "Not Fixed", "category": "Addon Not Visible", "sub_category": "Error from Insurer (Add-on)", "error_owner": "Insurer", "rca_group": "No RCA Documented"}, {"key": "HPS-235", "summary": "[RMIB] ICICI - 2w finesher name not updated ", "status": "Done", "assignee": "Aryan Duhan", "created": "2026-05-12", "timespent": 1800, "client": "RMIB", "insurer": "Not Specified", "issue": "Financer name not in the drop down", "rca": "was missing in mongo collection", "resolved": "Yes", "permanent_fix_raw": "yes", "permanent_fix": "Fixed for All", "category": "Other", "sub_category": "Miscellaneous", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-234", "summary": "[RMIB] Please check TP more than, 90 days quote not visible ", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-11", "timespent": 2700, "client": "RMIB", "insurer": "Not Specified", "issue": "In TP only two insurer’s quotes coming", "rca": "Only two insurer’s are live for renewal breakin", "resolved": "N/a", "permanent_fix_raw": "N/A Irrespective of policy type only two insurer will come", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-233", "summary": "[CSC] QVR Mapping", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-11", "timespent": 2700, "client": "CSC", "insurer": "Not Specified", "issue": "QVR Mapping", "rca": "Not mapped", "resolved": "Yes", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-232", "summary": "[MMFSL] CHOLA - QV Report mapping", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-11", "timespent": 600, "client": "MMFSL", "insurer": "Chola", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-231", "summary": "[MMFSL] ICICI - QV Report mapping", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-11", "timespent": 600, "client": "MMFSL", "insurer": "ICICI Lombard", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-230", "summary": "[AISECT] Auto facton issue ", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-11", "timespent": 1800, "client": "AISECT", "insurer": "Not Specified", "issue": "Autofetch not working", "rca": "The specific mmv was not present in make_model so autofetch was not working", "resolved": "Yes", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-229", "summary": "[RMIB] Please check attached logs, For the 2015 vehicle, only comprehensive is selected, but all add-ons including tyre protection are getting passed. Please check and update.", "status": "Dev In Progress", "assignee": "Aryan Duhan", "created": "2026-05-11", "timespent": 7200, "client": "RMIB", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Addon Not Visible", "sub_category": "Add-on Flag Misconfigured", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-228", "summary": "[CSC] Chola - GCV - RTO code mapping", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-11", "timespent": 1500, "client": "CSC", "insurer": "Chola", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-227", "summary": "[CSC] Chola policy doc not downloading", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-11", "timespent": 7200, "client": "CSC", "insurer": "Chola", "issue": "Even after payment, portal showing payment failed.", "rca": "After the payment was done a call is made for csc wallet status, in that status call we were receiving failed status and an error msg stating merchant transaction is not traceable. Raised the same to santosh from CSC, after discussion santosh told that the payment is successful from CSC side. had a discussion with kamlesh and manually trigerred success status after confirmation from Santosh and Kamlesh.", "resolved": "Yes", "permanent_fix_raw": "NA", "permanent_fix": "Fixed for All", "category": "Policy Document Issue", "sub_category": "Document Not Available", "error_owner": "Our System", "rca_group": "No RCA Documented"}, {"key": "HPS-226", "summary": "[MMFSL] Self inspection not triggering", "status": "Dev In Progress", "assignee": "Keshav sharma", "created": "2026-05-08", "timespent": 7200, "client": "MMFSL", "insurer": "Chola", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Policy Document Issue", "sub_category": "ITMS Sync Failure", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-225", "summary": "[CSC] United india - proposal get way time-out incress for 40 sec", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-08", "timespent": 1800, "client": "CSC", "insurer": "United", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Proposal Submission Failed", "sub_category": "Insurer API Rejection", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-224", "summary": "[CSC] TATA GCV <> IMT 23 is unavailable to suspect when we select ", "status": "Review", "assignee": "heet.rathod", "created": "2026-05-08", "timespent": 900, "client": "CSC", "insurer": "Not Specified", "issue": "IMT 23 cover not coming", "rca": "not Implemented @heet.rathod we need to confirm if imt23 cover need to be implemented in tata gcv. Mail has been raised by bhaskar", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Addon Not Visible", "sub_category": "Add-on Flag Misconfigured", "error_owner": "Our System", "rca_group": "Application Logic / Code Bug"}, {"key": "HPS-223", "summary": "[MMFSL] Maruti EECO Tour V - Addition in dropdown", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-08", "timespent": 3900, "client": "MMFSL", "insurer": "Not Specified", "issue": "Quotes not coming", "rca": "not in dropdown Added in dropdown+ added documents in two insurers +mapping", "resolved": "Yes", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "New MMV Addition Required", "error_owner": "Insurer", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-222", "summary": "[MMFSL] KYC - Error in payment stage", "status": "Backlog", "assignee": "Unassigned", "created": "2026-05-08", "timespent": 0, "client": "MMFSL", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Login / Auth Issue", "sub_category": "OTP / Session Issue", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-221", "summary": "[CSC] MMV not mapping missing", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-08", "timespent": 1200, "client": "CSC", "insurer": "Chola", "issue": "MMV Wrong mapped", "rca": "Wrong mapped", "resolved": "Yes", "permanent_fix_raw": "Done", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "Wrong MMV Mapped", "error_owner": "Our System", "rca_group": "Wrong Data Mapped"}, {"key": "HPS-220", "summary": "[CSC] The IDV we are entering here is correct, but an incorrect IDV is being passed from your side. Please check.", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-08", "timespent": 7200, "client": "CSC", "insurer": "Not Specified", "issue": "Incorrect IDV", "rca": "Insurer’s issue", "resolved": "N/A", "permanent_fix_raw": "N/A", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-219", "summary": "[CSC] Chola 4W <> Unabailable to download policy ", "status": "Review", "assignee": "heet.rathod", "created": "2026-05-07", "timespent": 3600, "client": "CSC", "insurer": "Chola", "issue": "Not able to download policy doc.", "rca": "CSC says it has done payment on 5th may, but upon checking the logs there is not TP api call to csc payment gateway, additionally they provided the receipt of payment, from that receipt i checked the transaction ID in our payment data but it was not present in that either.", "resolved": "Asked bhaskar to talk to csc regarding this as the data does not match .", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Policy Document Issue", "sub_category": "Insurer API Down", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-218", "summary": "[CSC] Chola 4W <> Unabailable to download policy ", "status": "Backlog", "assignee": "Unassigned", "created": "2026-05-07", "timespent": 0, "client": "CSC", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Policy Document Issue", "sub_category": "Document Not Available", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-217", "summary": "[CSC] TATA 4W <> Please check Premium issue when we select and unavailable select add.ons", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-07", "timespent": 2700, "client": "CSC", "insurer": "TATA AIG", "issue": "Premium really high", "rca": "Plan not configured", "resolved": "Yes", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Other", "sub_category": "Miscellaneous", "error_owner": "Our System", "rca_group": "Application Logic / Code Bug"}, {"key": "HPS-216", "summary": "[CSC] Chola 4W <> Ex-showroom price issue", "status": "Review", "assignee": "heet.rathod", "created": "2026-05-07", "timespent": 1200, "client": "CSC", "insurer": "Chola", "issue": "Chola quotes not visible", "rca": "Ex showroom price not present for the given model and state combination", "resolved": "Mapping done, but getting error from insurer API.", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "Ex-Showroom Price Missing", "error_owner": "Insurer", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-215", "summary": "[CSC] TATA 4W <> Please check Premium issue when we select Involce cover", "status": "Dev In Progress", "assignee": "Keshav sharma", "created": "2026-05-07", "timespent": 1200, "client": "CSC", "insurer": "Not Specified", "issue": "Invoice cover premium is greater than what they offer in the offline quote.", "rca": "The premium we’re gettting is from the TATA Api. Raised the logs to insurer.", "resolved": "Raised the logs to insurer.", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Addon Not Visible", "sub_category": "Error from Insurer (Add-on)", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-214", "summary": "[CSC] TATA GCV - TAIG GCV wrong mapping was present", "status": "Review", "assignee": "Keshav sharma", "created": "2026-05-07", "timespent": 1200, "client": "CSC", "insurer": "Not Specified", "issue": "Quote not visible", "rca": "TAIG GCV was wrong mapped.", "resolved": "Yes", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "Wrong MMV Mapped", "error_owner": "Our System", "rca_group": "Wrong Data Mapped"}, {"key": "HPS-213", "summary": "[CSC] TATA GCV - Unavailable download policy ", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-07", "timespent": 5400, "client": "CSC", "insurer": "TATA AIG", "issue": "Policy Doc not able to download.", "rca": "The poliicy doc downloaded was corrupted/small size, that’s why we were getting s3 upload issue, tried to identify the issue locally but afterwards, getting corrrect poliicy doc.", "resolved": "Yes", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Policy Document Issue", "sub_category": "Document Not Available", "error_owner": "Our System", "rca_group": "No RCA Documented"}, {"key": "HPS-212", "summary": "[RMIB] 2W ICICI - unavailable change IDV ", "status": "Review", "assignee": "heet.rathod", "created": "2026-05-07", "timespent": 1800, "client": "RMIB", "insurer": "ICICI Lombard", "issue": "Different IDV appearing as opposed to the one selected", "rca": "We are facing an issue while selecting a custom IDV in a rollover case. We are receiving idvDepreciationPercent = 0.7 , and the selected IDV is 20000 . Based on the calculation: Ex-Showroom Price = IDV / (1 - idvDepreciationPercent) According to this logic, the calculated ex-showroom price comes out to 66667 . However, in the API response, we are receiving a different IDV than the one selected, despite sending the ex-showroom price derived from the selected IDV.", "resolved": "No, issue raised to insurer", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "Ex-Showroom Price Missing", "error_owner": "Insurer", "rca_group": "Application Logic / Code Bug"}, {"key": "HPS-211", "summary": "[MMFSL] CHOLA - QV Report mapping", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-07", "timespent": 900, "client": "MMFSL", "insurer": "Chola", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-210", "summary": "[MMFSL] ICICI - QV Report mapping", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-07", "timespent": 600, "client": "MMFSL", "insurer": "ICICI Lombard", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-209", "summary": "[MMFSL] TATA - QV Report mapping", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-07", "timespent": 1200, "client": "MMFSL", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-208", "summary": "[RMIB] New Private Car Policy ICICI - Key and lock cover add-on is not covered. Universal - Loss of Personal Belongings add-on is not covered", "status": "Dev In Progress", "assignee": "Keshav sharma", "created": "2026-05-06", "timespent": 7200, "client": "RMIB", "insurer": "ICICI Lombard", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Addon Not Visible", "sub_category": "Add-on Flag Misconfigured", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-207", "summary": "[AISECT] Addons issue ", "status": "Backlog", "assignee": "Unassigned", "created": "2026-05-06", "timespent": 0, "client": "AISECT", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Addon Not Visible", "sub_category": "Add-on Flag Misconfigured", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-206", "summary": "[CSC] Shriram <> 2W - No Pincode details found for provided Pincode forsgic", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-06", "timespent": 1500, "client": "CSC", "insurer": "Shriram", "issue": "Proposal not submit", "rca": "Pincode master not mapped", "resolved": "Yes", "permanent_fix_raw": "Done", "permanent_fix": "Fixed for All", "category": "Proposal Submission Failed", "sub_category": "Other Proposal Error", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-205", "summary": "[AISECT] Addons issue ", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-06", "timespent": 300, "client": "AISECT", "insurer": "Digit", "issue": "Addons not coming", "rca": "insurer issue", "resolved": "Yes", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Addon Not Visible", "sub_category": "Error from Insurer (Add-on)", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-204", "summary": "[CSC] TATA GCV - Inspection over write cases", "status": "Backlog", "assignee": "Unassigned", "created": "2026-05-06", "timespent": 0, "client": "CSC", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-203", "summary": "[CSC] CSC <> Chola - 4W - exshow room price error", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-06", "timespent": 120, "client": "CSC", "insurer": "Chola", "issue": "Quotes not coming", "rca": "ex showroom prive not there", "resolved": "Yes", "permanent_fix_raw": "Done", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "Ex-Showroom Price Missing", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-202", "summary": "[CSC] please add the RTO code on drop down <> CSC - Chola", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-06", "timespent": 10800, "client": "CSC", "insurer": "Not Specified", "issue": "RTO not in dropdown", "rca": "API for RTO refresh not implemented", "resolved": "Yes", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Our System", "rca_group": "Application Logic / Code Bug"}, {"key": "HPS-201", "summary": "[CSC] Relance policy unavailable to download - pending cases 1st may to 5 may total - 5 cases ", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-06", "timespent": 5400, "client": "CSC", "insurer": "Reliance", "issue": "Policy Doc not downloading", "rca": "Wrong code pushed on prod", "resolved": "Yes", "permanent_fix_raw": "Done", "permanent_fix": "Fixed for All", "category": "Policy Document Issue", "sub_category": "Document Not Available", "error_owner": "Our System", "rca_group": "Wrong Data Mapped"}, {"key": "HPS-200", "summary": "[MMFSL] ICICI - QV Report mapping", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-05", "timespent": 1800, "client": "MMFSL", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-199", "summary": "[MMFSL] TATA - QV Report mapping", "status": "Done", "assignee": "Keshav sharma", "created": "2026-05-05", "timespent": 1800, "client": "MMFSL", "insurer": "TATA AIG", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-198", "summary": "[CSC] Payment Failing", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-04", "timespent": 1500, "client": "CSC", "insurer": "Chola", "issue": "Payment Failing", "rca": "NUll commission points", "resolved": "Yes", "permanent_fix_raw": "n/a", "permanent_fix": "Fixed for All", "category": "Payment Error", "sub_category": "Payment Gateway Error", "error_owner": "Our System", "rca_group": "Application Logic / Code Bug"}, {"key": "HPS-197", "summary": "Bypass inspection case", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-04", "timespent": 32400, "client": "Not Specified", "insurer": "Not Specified", "issue": "One gcv case is pending", "rca": "Insurer API not working", "resolved": "No", "permanent_fix_raw": "N/A", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-196", "summary": "[MMFSL] KYC not working", "status": "Review", "assignee": "heet.rathod", "created": "2026-05-04", "timespent": 900, "client": "MMFSL", "insurer": "Not Specified", "issue": "User not able to proceed with kyc", "rca": "brokeragekyc.mahindrafinance.com is misconfigured, getting invalid SSL certificate, raised the issue to client.", "resolved": "Pending on client", "permanent_fix_raw": "NA @Keshav sharma As per MMFSL this is alredy configured pls confirm Lahul has asked their team to check. i’ve sent them this", "permanent_fix": "Fixed for Client", "category": "Login / Auth Issue", "sub_category": "OTP / Session Issue", "error_owner": "Our System", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-195", "summary": "[CSC] Choal <> GVW - please add the MMV on drop down and map", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-02", "timespent": 900, "client": "CSC", "insurer": "Chola", "issue": "MMV not in dropdown", "rca": "Already in dropdown (false alarm)", "resolved": "N/A", "permanent_fix_raw": "N/A", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "New MMV Addition Required", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-194", "summary": "[CSC] MMV not mapped - Chola _4W", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-01", "timespent": 360, "client": "CSC", "insurer": "Chola", "issue": "MMV Not mapped", "rca": "Not mapped", "resolved": "Yes", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-193", "summary": "[CSC] Mahindra THAR ROXX - AX7 L DIESEL MT 2WD <> drop down missing  ", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-01", "timespent": 1200, "client": "CSC", "insurer": "Chola", "issue": "MMV wrong mapped", "rca": "Correctly Mapped MMV", "resolved": "Yes", "permanent_fix_raw": "Yes As mentioned in description, MMV was not missing in dropdown, It was incorrectly mapped. Due to mis direction it took a little more time", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "Wrong MMV Mapped", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-192", "summary": "[CSC] Please enter correct pincode where you want your policy to be booked, when check with back end- proposer_pincode\\\":\\\"812001", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-01", "timespent": 4500, "client": "CSC", "insurer": "TATA AIG", "issue": "Policy Doc not downloading", "rca": "Access denied on payment tagging( At insurer’s end)", "resolved": "Raised", "permanent_fix_raw": "N/A", "permanent_fix": "Fixed for All", "category": "Policy Document Issue", "sub_category": "ITMS Sync Failure", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-191", "summary": "[CSC] QVR Mapping", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-05-01", "timespent": 1800, "client": "CSC", "insurer": "TATA AIG", "issue": "QVR Report", "rca": "N/A Resolution: Done", "resolved": "", "permanent_fix_raw": "N/A", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Our System", "rca_group": "No RCA Documented"}, {"key": "HPS-190", "summary": "[MMFSL] MMV Addition in dropdown of PCCV", "status": "Dev In Progress", "assignee": "Keshav sharma", "created": "2026-04-30", "timespent": 900, "client": "MMFSL", "insurer": "Not Specified", "issue": "MMV not present in dropdown", "rca": "MMVs were not present in ID dropdown, got it added from ID team.", "resolved": "Yes", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "New MMV Addition Required", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-189", "summary": "[RMIB] ZD and Consumables are not showing in ICICI.", "status": "Backlog", "assignee": "Unassigned", "created": "2026-04-30", "timespent": 0, "client": "RMIB", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Addon Not Visible", "sub_category": "Add-on Flag Misconfigured", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-188", "summary": "[RMIB] Sompo Consumables cover is not showing.", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-30", "timespent": 6900, "client": "RMIB", "insurer": "Universal Sompo", "issue": "Consumable cover not coming", "rca": "Code not implemented", "resolved": "Yes", "permanent_fix_raw": "Done Across Client: Partnership-master, csc (not in mahindra as usompo not live)", "permanent_fix": "Fixed for Client", "category": "Addon Not Visible", "sub_category": "Add-on Flag Misconfigured", "error_owner": "Our System", "rca_group": "Application Logic / Code Bug"}, {"key": "HPS-187", "summary": "[MMFSL] TATA - QV Report mapping", "status": "Done", "assignee": "Keshav sharma", "created": "2026-04-30", "timespent": 1200, "client": "MMFSL", "insurer": "TATA AIG", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-186", "summary": "[MMFSL] CHOLA - QV Report mapping", "status": "Done", "assignee": "Keshav sharma", "created": "2026-04-30", "timespent": 1200, "client": "MMFSL", "insurer": "Chola", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-185", "summary": "[RMIB] Sompo quote not visible", "status": "Done", "assignee": "Aryan Duhan", "created": "2026-04-30", "timespent": 6600, "client": "RMIB", "insurer": "Universal Sompo", "issue": "Quotes not coming", "rca": "the request xml for universal sompo was malformed", "resolved": "Yes", "permanent_fix_raw": "yes", "permanent_fix": "Fixed for All", "category": "Addon Not Visible", "sub_category": "Add-on Flag Misconfigured", "error_owner": "Our System", "rca_group": "Application Logic / Code Bug"}, {"key": "HPS-184", "summary": "[CSC] Relance policy unavailable to download - 2w ", "status": "Review", "assignee": "heet.rathod", "created": "2026-04-30", "timespent": 1200, "client": "CSC", "insurer": "Reliance", "issue": "Policy Doc not downloading", "rca": "Access denied on payment tagging( At insurer’s end)", "resolved": "Raised", "permanent_fix_raw": "N/A", "permanent_fix": "Fixed for All", "category": "Policy Document Issue", "sub_category": "Insurer API Down", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-183", "summary": "[CSC] MMV wrong mapped ", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-30", "timespent": 600, "client": "CSC", "insurer": "Chola", "issue": "MMV wrong mapped", "rca": "", "resolved": "Yes", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "Wrong MMV Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-182", "summary": "[CSC] exshow room price issue on this MMV - chola - 4W", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-29", "timespent": 600, "client": "CSC", "insurer": "Chola", "issue": "Exshowroom price not mapped", "rca": "Not mapped", "resolved": "Yes", "permanent_fix_raw": "Done", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "Ex-Showroom Price Missing", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-181", "summary": "[CSC] MMV not mapped, please mapped", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-29", "timespent": 900, "client": "CSC", "insurer": "Chola", "issue": "Not mapped", "rca": "Not mapped", "resolved": "Yes", "permanent_fix_raw": "Done", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-180", "summary": "[MMFSL] Inspection photos pending to be pushed from Wimwisure ", "status": "Done", "assignee": "Keshav sharma", "created": "2026-04-29", "timespent": 2400, "client": "MMFSL", "insurer": "Chola", "issue": "Inspection recommended by wimwisure but still pending in ITMS.", "rca": "wimwisure had not sent the live_back photo which is mandatory, this was causing the inspection to not proceed.", "resolved": "Yes", "permanent_fix_raw": "yes", "permanent_fix": "Fixed for All", "category": "Policy Document Issue", "sub_category": "ITMS Sync Failure", "error_owner": "Our System", "rca_group": "User Onboarding / Process Issue"}, {"key": "HPS-179", "summary": "[RMIB] The finisher name on the RMIB drop-down- AU Small Finance Bank", "status": "Done", "assignee": "Aryan Duhan", "created": "2026-04-29", "timespent": 3600, "client": "RMIB", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Other", "sub_category": "Miscellaneous", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-178", "summary": "[ROINET] payment done policy not received", "status": "Done", "assignee": "Aryan Duhan", "created": "2026-04-29", "timespent": 3600, "client": "ROINET", "insurer": "SBI", "issue": "payment done , policy doc not received", "rca": "there was some changes in policy doc request and request header payload", "resolved": "Yes", "permanent_fix_raw": "yes", "permanent_fix": "Fixed for All", "category": "Policy Document Issue", "sub_category": "Document Not Available", "error_owner": "Our System", "rca_group": "No RCA Documented"}, {"key": "HPS-177", "summary": "[ROINET] payment done policy not received", "status": "Done", "assignee": "Aryan Duhan", "created": "2026-04-29", "timespent": 3600, "client": "ROINET", "insurer": "SBI", "issue": "payment done , policy doc not received", "rca": "there was some changes in policy doc request and request header payload", "resolved": "Yes", "permanent_fix_raw": "yes", "permanent_fix": "Fixed for All", "category": "Policy Document Issue", "sub_category": "Document Not Available", "error_owner": "Our System", "rca_group": "No RCA Documented"}, {"key": "HPS-176", "summary": "[CSC] After inspection case not showing in recommneded", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-29", "timespent": 1800, "client": "CSC", "insurer": "Not Specified", "issue": "Case not showing in itms", "rca": "Inspection was not done on portal or by wimwisure, wrong information provided by agent", "resolved": "N/A", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Policy Document Issue", "sub_category": "ITMS Sync Failure", "error_owner": "Our System", "rca_group": "Wrong Data Mapped"}, {"key": "HPS-175", "summary": "[CSC] Preinspection Id issue at shriram", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-29", "timespent": 1500, "client": "CSC", "insurer": "Shriram", "issue": "Proposal not submitting", "rca": "Issue at insurer’s end", "resolved": "N/A", "permanent_fix_raw": "N/A", "permanent_fix": "Fixed for All", "category": "Proposal Submission Failed", "sub_category": "Insurer API Rejection", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-174", "summary": "[CSC] Pincode mapping united", "status": "Done", "assignee": "Unassigned", "created": "2026-04-29", "timespent": 3600, "client": "CSC", "insurer": "United", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-173", "summary": "[RMIB] RTO HR98 is not available in the POS dropdown. Kindly add it.", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-29", "timespent": 16200, "client": "RMIB", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-172", "summary": "[CSC] MONGO 7 down", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-28", "timespent": 1800, "client": "CSC", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Other", "sub_category": "Miscellaneous", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-171", "summary": "[CSC] UK 19 RTO not visible", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-28", "timespent": 900, "client": "CSC", "insurer": "Not Specified", "issue": "Rto not in dropdown", "rca": "Cachce refreshed", "resolved": "", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Our System", "rca_group": "No RCA Documented"}, {"key": "HPS-170", "summary": "[CSC] UK 19 RTO not visible", "status": "Done", "assignee": "Unassigned", "created": "2026-04-28", "timespent": 0, "client": "CSC", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-169", "summary": "[CSC] OD Plans not coming", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-28", "timespent": 3900, "client": "CSC", "insurer": "TATA AIG", "issue": "Quotes not coming", "rca": "Wrong Configuration in db", "resolved": "Yes", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Our System", "rca_group": "Wrong Data Mapped"}, {"key": "HPS-168", "summary": "[CSC] CSC <> TATA<> 2W - showing CPA cover showing compulsory - please check", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-28", "timespent": 900, "client": "CSC", "insurer": "TATA AIG", "issue": "CPA cover getting chosen by default", "rca": "It was chosen from addons( false alarm)", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Addon Not Visible", "sub_category": "Add-on Flag Misconfigured", "error_owner": "Our System", "rca_group": "User Onboarding / Process Issue"}, {"key": "HPS-167", "summary": "[CSC] Invalid GST Number", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-28", "timespent": 2100, "client": "CSC", "insurer": "Chola", "issue": "GST Number invalid", "rca": "The 2nd last letter which is supposed to be ‘Z' was 'D’ @Kamlesh Prajapat Kamlesh Can you confirm what should we do in this case? Should we allow D instead of Z in GST number @Abhinav Jain add validtion in as per this but make sure privious things should work. The changes have been made", "resolved": "Not yet", "permanent_fix_raw": "N/A", "permanent_fix": "Fixed for All", "category": "Other", "sub_category": "Miscellaneous", "error_owner": "Our System", "rca_group": "No RCA Documented"}, {"key": "HPS-166", "summary": "[CSC] TG 11 RTO - IDRAHIMPATNAM ", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-28", "timespent": 900, "client": "CSC", "insurer": "Chola", "issue": "Not showing in dropdown", "rca": "Already There", "resolved": "N/A", "permanent_fix_raw": "N/A", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-165", "summary": "[CSC] In the TATA rollover breaking cases for all LOB, the Error showing - ( ‘1300-UWTP3 – Risk start date = T+1 (where T = transaction date )’ )is occurring. As checked from our end, the present date is being passed, due to which the quote is not visi...", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-28", "timespent": 3600, "client": "CSC", "insurer": "TATA AIG", "issue": "UWTP3 – Risk start date = T+1", "rca": "Policy start date was not handled in Tata gcv", "resolved": "Yes", "permanent_fix_raw": "Yes", "permanent_fix": "Fixed for All", "category": "Proposal Submission Failed", "sub_category": "Insurer API Rejection", "error_owner": "Our System", "rca_group": "Application Logic / Code Bug"}, {"key": "HPS-164", "summary": "[CSC] In the TATA rollover breaking cases for all LOB, the Error showing - ( ‘1300-UWTP3 – Risk start date = T+1 (where T = transaction date )’ )is occurring. As checked from our end, the present date is being passed, due to which the quote is not visi...", "status": "Done", "assignee": "Unassigned", "created": "2026-04-28", "timespent": 0, "client": "CSC", "insurer": "TATA AIG", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Proposal Submission Failed", "sub_category": "Insurer API Rejection", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-163", "summary": "[MMFSL] MMV mapping for ICICI and CHOLA", "status": "Done", "assignee": "Keshav sharma", "created": "2026-04-28", "timespent": 1200, "client": "MMFSL", "insurer": "Not Specified", "issue": "", "rca": "", "resolved": "", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Unknown", "rca_group": "No RCA Documented"}, {"key": "HPS-162", "summary": "[CSC] Unavailable to download policy copy, 2w", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-28", "timespent": 3000, "client": "CSC", "insurer": "TATA AIG", "issue": "Policy doc nor downloading", "rca": "Insurer’s end", "resolved": "N/A Permanent Solution: n/a Add leadId in logging so that it can we easliy tracked and pushed on prod", "permanent_fix_raw": "", "permanent_fix": "Not Fixed", "category": "Policy Document Issue", "sub_category": "Insurer API Down", "error_owner": "Insurer", "rca_group": "Insurer API / External Dependency Failure"}, {"key": "HPS-161", "summary": "[CSC] TS-30 RTO - Yadadri Bhuvanagiri, Telangana.", "status": "Done", "assignee": "Abhinav Jain", "created": "2026-04-28", "timespent": 900, "client": "CSC", "insurer": "Chola", "issue": "RTO not in dropdown", "rca": "Cache refreshed", "resolved": "Yes", "permanent_fix_raw": "Done", "permanent_fix": "Fixed for All", "category": "Quotes Not Fetched", "sub_category": "MMV Not Mapped", "error_owner": "Our System", "rca_group": "Master Data Missing / MMV Not in DB"}, {"key": "HPS-160", "summary": "[POLICY99] payment done policy not receive", "status": "Done", "assignee": "Aryan Duhan", "created": "2026-04-27", "timespent": 7200, "client": "POLICY99", "insurer": "Not Specified", "issue": "policy doc not received", "rca": "N/A", "resolved": "Yes", "permanent_fix_raw": "yes policy doc received", "permanent_fix": "Not Fixed", "category": "Policy Document Issue", "sub_category": "Document Not Available", "error_owner": "Unknown", "rca_group": "No RCA Documented"}];
+const BASE_URL = "https://gibpl.atlassian.net/browse/";
+const REPORT_DATE = "2026-05-18";
+
+// ── Utilities ──────────────────────────────────────────────────────
+function chip(key) {
+  return `<a href="${BASE_URL}${key}" target="_blank" rel="noopener noreferrer" class="chip">${key}</a>`;
+}
+function badge(text, cls) {
+  const map = {'Not Fixed':'badge-red','Fixed for All':'badge-green','Fixed for Client':'badge-amber',
+               'Insurer':'badge-amber','Our System':'badge-blue','Unknown':'badge-gray',
+               'Done':'badge-green','Open':'badge-blue','Backlog':'badge-gray',
+               'Review':'badge-amber','Dev In Progress':'badge-amber'};
+  const c = map[text] || cls || 'badge-gray';
+  return `<span class="badge ${c}">${text}</span>`;
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  const [y,m,d] = iso.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${d} ${months[parseInt(m)-1]} ${y}`;
+}
+function fmtSecs(s) {
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+function statusColor(s) {
+  const m = {'Done':'green','Open':'blue','Backlog':'gray','Dev In Progress':'amber','Review':'amber','Blocked':'red'};
+  return m[s] || 'gray';
+}
+function pct(a,b) { return b ? Math.round(a/b*100) : 0; }
+function grp(arr, key) {
+  return arr.reduce((acc, t) => { (acc[t[key]] = acc[t[key]]||[]).push(t); return acc; }, {});
+}
+function countBy(arr, key) {
+  const c = {};
+  arr.forEach(t => { c[t[key]] = (c[t[key]]||0)+1; });
+  return c;
+}
+
+// ── Filter State ───────────────────────────────────────────────────
+function filterTickets() {
+  const client = document.getElementById('f-client').value;
+  const insurer = document.getElementById('f-insurer').value;
+  const from = document.getElementById('f-from').value;
+  const to = document.getElementById('f-to').value;
+  return TICKETS.filter(t => {
+    if (client && t.client !== client) return false;
+    if (insurer && t.insurer !== insurer) return false;
+    if (from && t.created < from) return false;
+    if (to && t.created > to) return false;
+    return true;
+  });
+}
+
+function updateFilterSummary(rows) {
+  const client = document.getElementById('f-client').value || 'All Clients';
+  const insurer = document.getElementById('f-insurer').value || 'All Insurers';
+  const from = document.getElementById('f-from').value;
+  const to = document.getElementById('f-to').value;
+  let parts = [`Showing <strong>${rows.length}</strong> ticket${rows.length!==1?'s':''}`];
+  if (client !== 'All Clients') parts.push(client);
+  if (insurer !== 'All Insurers') parts.push(insurer);
+  if (from || to) parts.push(`${from?fmtDate(from):'start'} – ${to?fmtDate(to):'now'}`);
+  document.getElementById('filter-summary').innerHTML = parts.join(' · ');
+  document.getElementById('hero-count').textContent = TICKETS.length;
+}
+
+function clearPreset() {
+  document.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('active'));
+}
+
+function applyPreset(btn, preset) {
+  document.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  const today = REPORT_DATE;
+  const d = new Date(today);
+  let from='', to='';
+  if (preset === 'all') { from=''; to=''; }
+  else if (preset === 'today') { from=today; to=today; }
+  else if (preset === 'yesterday') {
+    const y = new Date(d); y.setDate(y.getDate()-1);
+    from=to=y.toISOString().split('T')[0];
+  }
+  else if (preset === 'week') {
+    const day = d.getDay();
+    const mon = new Date(d); mon.setDate(d.getDate()-day+1);
+    from=mon.toISOString().split('T')[0]; to=today;
+  }
+  else if (preset === 'month') {
+    from=`${today.substring(0,7)}-01`; to=today;
+  }
+  else if (preset === 'lastmonth') {
+    const lm = new Date(d.getFullYear(), d.getMonth()-1, 1);
+    const lme = new Date(d.getFullYear(), d.getMonth(), 0);
+    from=lm.toISOString().split('T')[0]; to=lme.toISOString().split('T')[0];
+  }
+  document.getElementById('f-from').value = from;
+  document.getElementById('f-to').value = to;
+  renderAll();
+}
+
+function onClientChange() {
+  const client = document.getElementById('f-client').value;
+  const sel = document.getElementById('f-insurer');
+  const cur = sel.value;
+  const insurers = [...new Set(TICKETS.filter(t => !client || t.client===client).map(t => t.insurer))].sort();
+  sel.innerHTML = '<option value="">All Insurers</option>' + insurers.map(i=>`<option${i===cur?' selected':''}>${i}</option>`).join('');
+}
+
+function resetFilters() {
+  document.getElementById('f-client').value='';
+  document.getElementById('f-insurer').value='';
+  document.getElementById('f-from').value='';
+  document.getElementById('f-to').value='';
+  document.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('active'));
+  document.querySelector('.preset-pill').classList.add('active');
+  onClientChange();
+  renderAll();
+}
+
+function switchTab(btn, panelId) {
+  const bar = btn.closest('.tab-bar');
+  bar.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const section = btn.closest('.section');
+  section.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+}
+
+// ── Render: Executive Summary ──────────────────────────────────────
+function renderExecutive(rows) {
+  const all = TICKETS;
+  const totalAll = all.length;
+  const clientsAll = new Set(all.map(t=>t.client)).size;
+  const doneAll = all.filter(t=>t.status==='Done').length;
+  const openAll = all.filter(t=>t.status!=='Done').length;
+  const fixedAll2 = all.filter(t=>t.permanent_fix==='Fixed for All').length;
+  const insurerErr = all.filter(t=>t.error_owner==='Insurer').length;
+
+  document.getElementById('exec-cards').innerHTML = `
+    <div class="card blue"><div class="card-val">${totalAll}</div><div class="card-label">Total Tickets</div></div>
+    <div class="card gray"><div class="card-val">${clientsAll}</div><div class="card-label">Clients Affected</div></div>
+    <div class="card green"><div class="card-val">${doneAll}</div><div class="card-label">Resolved / Done</div></div>
+    <div class="card amber"><div class="card-val">${openAll}</div><div class="card-label">Open / In Progress</div></div>
+    <div class="card green"><div class="card-val">${fixedAll2}</div><div class="card-label">Fixed for All</div></div>
+    <div class="card red"><div class="card-val">${insurerErr}</div><div class="card-label">Insurer-Side Errors</div></div>
+  `;
+
+  // Critical pattern
+  const cats = countBy(rows,'category');
+  const topCat = Object.entries(cats).sort((a,b)=>b[1]-a[1])[0];
+  if (topCat) {
+    const p = pct(topCat[1], rows.length);
+    document.getElementById('exec-callout').innerHTML = `
+      <div class="callout callout-red">
+        🔴 <strong>Critical Pattern:</strong> ${p}% of tickets are classified as <strong>${topCat[0]}</strong> — this is the highest-volume category and warrants a systematic root-cause review.
+      </div>`;
+  }
+
+  // Client-wise table
+  const byClient = grp(rows, 'client');
+  let html = `<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr><th>Client</th><th>Total</th><th>Resolved/Done (%)</th><th>Open/In Progress</th><th>Insurer-Side Errors</th><th>Fixed for All</th></tr></thead>
+    <tbody>`;
+  Object.entries(byClient).sort((a,b)=>b[1].length-a[1].length).forEach(([c,ts])=>{
+    const done=ts.filter(t=>t.status==='Done').length;
+    const open=ts.filter(t=>t.status!=='Done').length;
+    const ins=ts.filter(t=>t.error_owner==='Insurer').length;
+    const fa=ts.filter(t=>t.permanent_fix==='Fixed for All').length;
+    const dp=pct(done,ts.length);
+    html+=`<tr><td><strong>${c}</strong></td><td class="number">${ts.length}</td>
+      <td><span class="${dp>=70?'pct-green':dp<40?'pct-red':''}">${done} (${dp}%)</span></td>
+      <td class="number">${open}</td><td class="number">${ins}</td><td class="number">${fa}</td></tr>`;
+  });
+  html+='</tbody></table></div>';
+  document.getElementById('exec-client-table').innerHTML = html;
+}
+
+// ── Render: Distribution ──────────────────────────────────────────
+function renderDistribution(rows) {
+  // Bar chart
+  const byClient = countBy(rows,'client');
+  const sorted = Object.entries(byClient).sort((a,b)=>b[1]-a[1]);
+  const max = sorted[0]?.[1]||1;
+  let barHtml = '<div class="bar-chart">';
+  sorted.forEach(([c,n])=>{
+    barHtml+=`<div class="bar-row">
+      <div class="bar-label">${c}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct(n,max)}%"></div></div>
+      <div class="bar-count">${n}</div>
+    </div>`;
+  });
+  barHtml+='</div>';
+  document.getElementById('dist-bar').innerHTML = barHtml;
+
+  // Collapsible groups
+  const byClientFull = grp(rows,'client');
+  let groupHtml = '';
+  Object.entries(byClientFull).sort((a,b)=>b[1].length-a[1].length).forEach(([c,ts])=>{
+    const byIns = grp(ts,'insurer');
+    let insRows='';
+    Object.entries(byIns).sort((a,b)=>b[1].length-a[1].length).forEach(([ins,its])=>{
+      const id = `ins-${c.replace(/\s+/g,'-')}-${ins.replace(/\s+/g,'-')}`;
+      insRows+=`<div class="insurer-row">
+        <div class="insurer-name"><button class="insurer-toggle" onclick="toggleInsurer('${id}',${JSON.stringify(its.map(t=>t.key))})">▾ ${its.length}</button>${ins}</div>
+        <div class="insurer-chips" id="${id}"></div>
+      </div>`;
+    });
+    groupHtml+=`<div class="client-group" id="cg-${c}">
+      <div class="client-group-header" onclick="toggleGroup('cg-${c}')">${c} <span>${ts.length} tickets ▾</span></div>
+      <div class="client-group-body">${insRows}</div>
+    </div>`;
+  });
+  document.getElementById('dist-groups').innerHTML = groupHtml;
+
+  // Summary table
+  const html2 = `<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr><th>Client</th><th>Total</th><th>Resolved/Done (%)</th><th>Open/In Progress</th><th>Insurer-Side Errors</th></tr></thead>
+    <tbody>` +
+    Object.entries(byClientFull).sort((a,b)=>b[1].length-a[1].length).map(([c,ts])=>{
+      const done=ts.filter(t=>t.status==='Done').length;
+      const dp=pct(done,ts.length);
+      return `<tr><td><strong>${c}</strong></td><td class="number">${ts.length}</td>
+        <td><span class="${dp>=70?'pct-green':dp<40?'pct-red':''}">${done} (${dp}%)</span></td>
+        <td class="number">${ts.filter(t=>t.status!=='Done').length}</td>
+        <td class="number">${ts.filter(t=>t.error_owner==='Insurer').length}</td></tr>`;
+    }).join('') +
+    '</tbody></table></div>';
+  document.getElementById('dist-summary-table').innerHTML = html2;
+}
+
+function toggleGroup(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+
+function toggleInsurer(id, keys) {
+  const el = document.getElementById(id);
+  if (el.innerHTML) { el.innerHTML=''; return; }
+  el.innerHTML = '<div class="chips-wrap">'+keys.map(k=>chip(k)).join('')+'</div>';
+}
+
+// ── Render: Category Table ────────────────────────────────────────
+function renderCategoryTable(rows) {
+  const groups = {};
+  rows.forEach(t => {
+    const g = t.category;
+    if (!groups[g]) groups[g] = {};
+    const s = t.sub_category;
+    if (!groups[g][s]) groups[g][s] = [];
+    groups[g][s].push(t);
+  });
+
+  const catTotals = Object.fromEntries(Object.entries(groups).map(([c,subs])=>[c, Object.values(subs).reduce((a,v)=>a+v.length,0)]));
+  const sortedCats = Object.keys(groups).sort((a,b)=>catTotals[b]-catTotals[a]);
+
+  let html = `<div style="overflow-x:auto"><table class="tbl">
+    <colgroup>
+      <col style="width:13%"><col style="width:16%"><col style="width:6%"><col style="width:8%"><col style="width:57%">
+    </colgroup>
+    <thead><tr><th>Category</th><th>Sub-Category</th><th>Count</th><th>% of Total</th><th>Tickets</th></tr></thead>
+    <tbody>`;
+
+  sortedCats.forEach(cat => {
+    const subs = groups[cat];
+    const catTotal = catTotals[cat];
+    const sortedSubs = Object.keys(subs).sort((a,b)=>subs[b].length-subs[a].length);
+    sortedSubs.forEach(sub => {
+      const ts = subs[sub];
+      html+=`<tr><td>${cat}</td><td>${sub}</td><td class="number">${ts.length}</td>
+        <td class="number">${pct(ts.length,rows.length)}%</td>
+        <td style="word-wrap:break-word;word-break:break-word"><div class="chips-wrap">${ts.map(t=>chip(t.key)).join('')}</div></td></tr>`;
+    });
+    html+=`<tr class="subtotal"><td colspan="2"><strong>${cat} — Total</strong></td>
+      <td class="number"><strong>${catTotal}</strong></td>
+      <td class="number"><strong>${pct(catTotal,rows.length)}%</strong></td><td></td></tr>`;
+  });
+  html+='</tbody></table></div>';
+  document.getElementById('cat-table').innerHTML = html;
+}
+
+// ── Render: Status ────────────────────────────────────────────────
+function renderStatus(rows) {
+  const counts = countBy(rows,'status');
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const max = sorted[0]?.[1]||1;
+  let barHtml = '<div class="bar-chart">';
+  sorted.forEach(([s,n])=>{
+    const c = statusColor(s);
+    barHtml+=`<div class="bar-row">
+      <div class="bar-label">${s}</div>
+      <div class="bar-track"><div class="bar-fill ${c}" style="width:${pct(n,max)}%"></div></div>
+      <div class="bar-count">${n}</div>
+    </div>`;
+  });
+  barHtml+='</div>';
+  document.getElementById('status-bar').innerHTML = barHtml;
+
+  // Open tickets table
+  const open = rows.filter(t=>t.status!=='Done');
+  let thtml='<div style="font-weight:600;margin-bottom:8px;font-size:13px">Open / Non-Done Tickets</div>';
+  if (!open.length) {thtml+='<div style="color:var(--muted);font-size:13px">All tickets resolved ✓</div>';}
+  else {
+    thtml+='<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Key</th><th>Client</th><th>Summary</th><th>Assignee</th><th>Status</th></tr></thead><tbody>';
+    open.forEach(t=>{
+      const ua = t.assignee==='Unassigned';
+      thtml+=`<tr class="${ua?'red-border':''}">
+        <td>${chip(t.key)}</td><td>${t.client}</td>
+        <td style="max-width:200px;word-wrap:break-word">${t.summary}</td>
+        <td style="color:${ua?'var(--accent)':'inherit'}">${t.assignee}</td>
+        <td>${badge(t.status)}</td></tr>`;
+    });
+    thtml+='</tbody></table></div>';
+  }
+  document.getElementById('status-open-table').innerHTML = thtml;
+}
+
+// ── Render: RCA ───────────────────────────────────────────────────
+function renderRca(rows) {
+  const RCA_GROUPS = [
+    'Master Data Missing / MMV Not in DB',
+    'Wrong Data Mapped',
+    'Insurer API / External Dependency Failure',
+    'Application Logic / Code Bug',
+    'User Onboarding / Process Issue',
+    'No RCA Documented'
+  ];
+  const byGroup = grp(rows,'rca_group');
+  const counts = Object.fromEntries(RCA_GROUPS.map(g=>[g,(byGroup[g]||[]).length]));
+  const maxCount = Math.max(...Object.values(counts));
+
+  let html = '';
+  RCA_GROUPS.forEach(g=>{
+    const ts = byGroup[g]||[];
+    const isTop = ts.length === maxCount && ts.length > 0;
+    html+=`<div class="accordion${isTop?' open':''}" id="rca-acc-${g.replace(/\s+/g,'-')}">
+      <div class="accordion-header${isTop?' highlight':''}" onclick="toggleAccordion(this)">
+        <span>${g}</span>
+        <span><span class="badge badge-${isTop?'red':'blue'}">${ts.length}</span> <span class="accordion-toggle">▾</span></span>
+      </div>
+      <div class="accordion-body${isTop?' open':''}">
+        ${ts.length===0?'<em style="color:var(--muted)">No tickets in this group</em>':
+          ts.map(t=>`<div style="margin-bottom:6px">${chip(t.key)} <span style="font-size:12px;color:var(--ink)">${t.rca||'<em style="color:var(--muted)">No RCA documented</em>'}</span></div>`).join('')}
+      </div>
+    </div>`;
+  });
+  document.getElementById('rca-panels').innerHTML = html;
+}
+
+function toggleAccordion(header) {
+  const acc = header.closest('.accordion');
+  const body = acc.querySelector('.accordion-body');
+  const toggle = acc.querySelector('.accordion-toggle');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  acc.classList.toggle('open', !isOpen);
+}
+
+// ── Render: Permanent Fix ─────────────────────────────────────────
+function renderPermanentFix(rows) {
+  const nf=rows.filter(t=>t.permanent_fix==='Not Fixed').length;
+  const fc=rows.filter(t=>t.permanent_fix==='Fixed for Client').length;
+  const fa=rows.filter(t=>t.permanent_fix==='Fixed for All').length;
+
+  document.getElementById('perm-cards').innerHTML=`
+    <div class="card red"><div class="card-val">${nf}</div><div class="card-label">Not Fixed</div></div>
+    <div class="card amber"><div class="card-val">${fc}</div><div class="card-label">Fixed for Client</div></div>
+    <div class="card green"><div class="card-val">${fa}</div><div class="card-label">Fixed for All</div></div>
+  `;
+
+  let html=`<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr><th>Key</th><th>Client</th><th>Summary</th><th>Assignee</th><th>Status</th><th>Permanent Fix</th><th>Note</th></tr></thead>
+    <tbody>`;
+  rows.sort((a,b)=>{const o=['Not Fixed','Fixed for Client','Fixed for All'];return o.indexOf(a.permanent_fix)-o.indexOf(b.permanent_fix);})
+    .forEach(t=>{
+    html+=`<tr><td>${chip(t.key)}</td><td>${t.client}</td>
+      <td style="max-width:180px;word-wrap:break-word">${t.summary}</td>
+      <td>${t.assignee}</td><td>${badge(t.status)}</td>
+      <td>${badge(t.permanent_fix)}</td>
+      <td style="font-size:11px;color:var(--muted);max-width:120px;word-wrap:break-word">${t.permanent_fix_raw||''}</td></tr>`;
+  });
+  html+='</tbody></table></div>';
+  document.getElementById('perm-table').innerHTML=html;
+}
+
+// ── Render: Assignees ─────────────────────────────────────────────
+function renderAssignees(rows) {
+  const byA = grp(rows,'assignee');
+  const sorted = Object.entries(byA).sort((a,b)=>b[1].length-a[1].length);
+  const unassIdx = sorted.findIndex(([a])=>a==='Unassigned');
+  if (unassIdx>0) { sorted.push(sorted.splice(unassIdx,1)[0]); }
+  const max = sorted[0]?.[1]?.length||1;
+
+  let barHtml='<div class="bar-chart">';
+  sorted.forEach(([a,ts])=>{
+    const c = a==='Unassigned'?'red':'';
+    barHtml+=`<div class="bar-row">
+      <div class="bar-label">${a}</div>
+      <div class="bar-track"><div class="bar-fill ${c}" style="width:${pct(ts.length,max)}%"></div></div>
+      <div class="bar-count">${ts.length}</div>
+    </div>`;
+  });
+  barHtml+='</div>';
+  document.getElementById('assignee-bar').innerHTML=barHtml;
+
+  let thtml=`<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr><th>Assignee</th><th>Total</th><th>Done</th><th>Open+Backlog</th><th>Resolution %</th><th>Perm Fixes Done</th></tr></thead>
+    <tbody>`;
+  sorted.forEach(([a,ts])=>{
+    const done=ts.filter(t=>t.status==='Done').length;
+    const open=ts.filter(t=>t.status!=='Done').length;
+    const fa=ts.filter(t=>t.permanent_fix==='Fixed for All').length;
+    const dp=pct(done,ts.length);
+    const isUn=a==='Unassigned';
+    thtml+=`<tr style="${isUn?'background:var(--soft-red)':''}">
+      <td>${a}</td><td class="number">${ts.length}</td><td class="number">${done}</td>
+      <td class="number">${open}</td>
+      <td><span class="${dp>=70?'pct-green':dp<40?'pct-red':''}">${dp}%</span></td>
+      <td class="number">${fa}</td></tr>`;
+  });
+  thtml+='</tbody></table></div>';
+  document.getElementById('assignee-table').innerHTML=thtml;
+
+  const unassigned=rows.filter(t=>t.assignee==='Unassigned').length;
+  const unPct=pct(unassigned,rows.length);
+  if (unPct>20) {
+    document.getElementById('assignee-callout').innerHTML=`
+      <div class="callout callout-red" style="margin-top:12px">
+        ⚠️ <strong>${unassigned} tickets (${unPct}%) are unassigned</strong> — SLA risk. Immediate triage recommended.
+      </div>`;
+  } else {
+    document.getElementById('assignee-callout').innerHTML='';
+  }
+}
+
+// ── Render: Hours ─────────────────────────────────────────────────
+function renderHours(rows) {
+  const totalSecs=rows.reduce((s,t)=>s+(t.timespent||0),0);
+  if (totalSecs===0) {
+    document.getElementById('hours-body').innerHTML=`
+      <div class="callout callout-amber">
+        ⚠️ <strong>No hours logged</strong> for the filtered tickets. Consider enabling time-tracking in Jira for accurate workload analysis.
+      </div>`;
+    return;
+  }
+  const byA={};
+  rows.forEach(t=>{
+    if (!byA[t.assignee]) byA[t.assignee]={secs:0,tickets:0};
+    byA[t.assignee].secs+=(t.timespent||0);
+    if(t.timespent>0) byA[t.assignee].tickets++;
+  });
+  const sorted=Object.entries(byA).filter(([,v])=>v.secs>0).sort((a,b)=>b[1].secs-a[1].secs);
+  const maxH=sorted[0]?.[1]?.secs||1;
+
+  let html=`<div class="two-col">`;
+  let thtml=`<table class="tbl"><thead><tr><th>Assignee</th><th>Tickets</th><th>Total Hours</th><th>Avg Hrs/Ticket</th></tr></thead><tbody>`;
+  sorted.forEach(([a,v])=>{
+    const h=(v.secs/3600).toFixed(1);
+    const avg=v.tickets>0?(v.secs/v.tickets/3600).toFixed(1):'—';
+    thtml+=`<tr><td>${a}</td><td class="number">${v.tickets}</td><td class="number">${h}h</td><td class="number">${avg}h</td></tr>`;
+  });
+  thtml+=`<tr class="subtotal"><td><strong>Total</strong></td><td></td><td class="number"><strong>${(totalSecs/3600).toFixed(1)}h</strong></td><td></td></tr>`;
+  thtml+='</tbody></table>';
+
+  let barHtml='<div class="bar-chart">';
+  sorted.forEach(([a,v])=>{
+    barHtml+=`<div class="bar-row">
+      <div class="bar-label">${a}</div>
+      <div class="bar-track"><div class="bar-fill green" style="width:${pct(v.secs,maxH)}%"></div></div>
+      <div class="bar-count">${(v.secs/3600).toFixed(1)}h</div>
+    </div>`;
+  });
+  barHtml+='</div>';
+
+  html+=`<div>${thtml}</div><div>${barHtml}</div></div>`;
+  document.getElementById('hours-body').innerHTML=html;
+}
+
+// ── Render: Taxonomy ──────────────────────────────────────────────
+function renderTaxonomy(rows) {
+  const journeyMap={
+    'Quotes Not Fetched':'Quote','Proposal Submission Failed':'Proposal',
+    'Payment Error':'Payment','Login / Auth Issue':'Auth',
+    'Policy Document Issue':'Post-Issuance','Addon Not Visible':'Quote','Other':'Other'
+  };
+  const groups={};
+  rows.forEach(t=>{
+    const g=`${t.category}|||${t.sub_category}`;
+    if(!groups[g])groups[g]={cat:t.category,sub:t.sub_category,count:0,nf:0,fc:0,fa:0};
+    groups[g].count++;
+    if(t.permanent_fix==='Not Fixed')groups[g].nf++;
+    if(t.permanent_fix==='Fixed for Client')groups[g].fc++;
+    if(t.permanent_fix==='Fixed for All')groups[g].fa++;
+  });
+
+  let html=`<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr><th>#</th><th>Category</th><th>Sub-Category</th><th>Journey Stage</th><th>Count</th><th>Not Fixed</th><th>For Client</th><th>For All</th></tr></thead>
+    <tbody>`;
+  let i=1;
+  Object.values(groups).sort((a,b)=>b.count-a.count).forEach(g=>{
+    html+=`<tr><td class="number">${i++}</td><td>${g.cat}</td><td>${g.sub}</td>
+      <td>${journeyMap[g.cat]||'Other'}</td>
+      <td class="number"><strong>${g.count}</strong></td>
+      <td class="number" style="color:var(--accent)">${g.nf||''}</td>
+      <td class="number" style="color:var(--warn)">${g.fc||''}</td>
+      <td class="number" style="color:var(--accent3)">${g.fa||''}</td></tr>`;
+  });
+  html+='</tbody></table></div>';
+  html+=`<div class="callout callout-blue" style="margin-top:12px">
+    💡 <strong>Recommendation:</strong> Formalise this taxonomy as Jira custom fields (Category + Sub-Category + Journey Stage). This will enable automated dashboards, SLA bucketing, and trend analysis without manual classification.
+  </div>`;
+  document.getElementById('taxonomy-body').innerHTML=html;
+}
+
+// ── Render: Ownership ─────────────────────────────────────────────
+function renderOwnership(rows) {
+  const counts=countBy(rows,'error_owner');
+  const total=rows.length;
+  const order=['Our System','Insurer','Unknown'];
+  const colors=['blue','amber','gray'];
+  const maxC=Math.max(...Object.values(counts))||1;
+
+  let barHtml='<div class="bar-chart">';
+  order.forEach((o,i)=>{
+    const n=counts[o]||0;
+    barHtml+=`<div class="bar-row">
+      <div class="bar-label">${o}</div>
+      <div class="bar-track"><div class="bar-fill ${colors[i]}" style="width:${pct(n,maxC)}%"></div></div>
+      <div class="bar-count">${n} (${pct(n,total)}%)</div>
+    </div>`;
+  });
+  barHtml+='</div>';
+  document.getElementById('ownership-bar').innerHTML=barHtml;
+
+  const insTickets=rows.filter(t=>t.error_owner==='Insurer');
+  let thtml=`<div style="font-weight:600;font-size:13px;margin-bottom:8px">Insurer-Side Tickets</div>`;
+  if(!insTickets.length){thtml+='<em style="color:var(--muted)">None</em>';}
+  else{
+    thtml+=`<div style="overflow-x:auto"><table class="tbl">
+      <thead><tr><th>Key</th><th>Client</th><th>Insurer</th><th>Summary</th><th>RCA</th></tr></thead><tbody>`;
+    insTickets.forEach(t=>{
+      thtml+=`<tr><td>${chip(t.key)}</td><td>${t.client}</td>
+        <td>${t.insurer} ${badge('Insurer','badge-amber')}</td>
+        <td style="max-width:180px;word-wrap:break-word">${t.summary}</td>
+        <td style="font-size:11px;max-width:120px;word-wrap:break-word">${t.rca||'—'}</td></tr>`;
+    });
+    thtml+='</tbody></table></div>';
+  }
+  document.getElementById('ownership-table').innerHTML=thtml;
+}
+
+// ── Render: Appendix ──────────────────────────────────────────────
+let appendixSort={col:'key',dir:1};
+function sortAppendix(col) {
+  if(appendixSort.col===col) appendixSort.dir*=-1;
+  else {appendixSort.col=col;appendixSort.dir=1;}
+  document.querySelectorAll('#appendix-tbl th').forEach(th=>th.classList.remove('sorted'));
+  renderAppendix(filterTickets());
+}
+function renderAppendix(rows) {
+  const {col,dir}=appendixSort;
+  const sorted=[...rows].sort((a,b)=>{
+    const av=a[col]||'',bv=b[col]||'';
+    return av<bv?-dir:av>bv?dir:0;
+  });
+  document.getElementById('appendix-count').textContent=`Showing ${sorted.length} ticket${sorted.length!==1?'s':''}`;
+  let html='';
+  sorted.forEach(t=>{
+    html+=`<tr><td>${chip(t.key)}</td><td>${t.client}</td>
+      <td>${t.insurer}</td>
+      <td style="max-width:200px;word-wrap:break-word;font-size:12px">${t.summary}</td>
+      <td>${t.assignee}</td>
+      <td class="mono" style="white-space:nowrap">${fmtDate(t.created)}</td>
+      <td>${badge(t.status)}</td>
+      <td style="font-size:11px">${t.category}</td>
+      <td style="font-size:11px">${t.sub_category}</td>
+      <td>${badge(t.permanent_fix)}</td>
+      <td>${badge(t.error_owner)}</td></tr>`;
+  });
+  document.getElementById('appendix-body').innerHTML=html;
+}
+
+// ── renderAll ─────────────────────────────────────────────────────
+function renderAll() {
+  const rows=filterTickets();
+  updateFilterSummary(rows);
+  renderExecutive(rows);
+  renderDistribution(rows);
+  renderCategoryTable(rows);
+  renderStatus(rows);
+  renderRca(rows);
+  renderPermanentFix(rows);
+  renderAssignees(rows);
+  renderHours(rows);
+  renderTaxonomy(rows);
+  renderOwnership(rows);
+  renderAppendix(rows);
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', ()=>{
+  // Populate client dropdown
+  const clients=[...new Set(TICKETS.map(t=>t.client))].sort();
+  const cs=document.getElementById('f-client');
+  clients.forEach(c=>{ const o=document.createElement('option');o.value=o.textContent=c;cs.appendChild(o); });
+
+  // Populate insurer dropdown
+  const insurers=[...new Set(TICKETS.map(t=>t.insurer))].sort();
+  const is=document.getElementById('f-insurer');
+  insurers.forEach(i=>{ const o=document.createElement('option');o.value=o.textContent=i;is.appendChild(o); });
+
+  renderAll();
+});
+</script>
+</body>
+</html>
